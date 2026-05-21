@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Paolo Castro</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #050816;
+        --text: #f8fafc;
+        --muted: rgba(226, 232, 240, 0.78);
+        --line: rgba(96, 165, 250, 0.32);
+        --line-strong: rgba(129, 140, 248, 0.6);
+        --card: rgba(15, 23, 42, 0.56);
+        --border: rgba(148, 163, 184, 0.22);
+        --accent: #93c5fd;
+        --shadow: 0 24px 80px rgba(15, 23, 42, 0.45);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: Inter, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+        background:
+          radial-gradient(circle at top, rgba(59, 130, 246, 0.22), transparent 34%),
+          radial-gradient(circle at 80% 20%, rgba(129, 140, 248, 0.18), transparent 28%),
+          var(--bg);
+        color: var(--text);
+        overflow-x: hidden;
+      }
+
+      a { color: var(--accent); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+
+      .page { position: relative; min-height: 100vh; isolation: isolate; }
+
+      .floating-lines {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+      }
+
+      .floating-lines svg {
+        position: absolute;
+        inset: -10%;
+        width: 120%;
+        height: 120%;
+        opacity: 0.72;
+      }
+
+      .floating-lines path {
+        fill: none;
+        stroke-linecap: round;
+        animation: drift 14s ease-in-out infinite alternate;
+      }
+      .floating-lines path:nth-child(2) { animation-duration: 18s; }
+      .floating-lines path:nth-child(3) { animation-duration: 22s; }
+
+      @keyframes drift {
+        from { transform: translate3d(-2%, 0, 0); }
+        to { transform: translate3d(2%, -2%, 0); }
+      }
+
+      .shell {
+        position: relative;
+        z-index: 1;
+        width: min(1120px, calc(100% - 2rem));
+        margin: 0 auto;
+        padding: 1.25rem 0 3rem;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: flex-end;
+        position: sticky;
+        top: 0.75rem;
+        z-index: 5;
+      }
+
+      .language-toggle {
+        display: inline-flex;
+        gap: 0.35rem;
+        padding: 0.35rem;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(18px);
+        box-shadow: var(--shadow);
+      }
+
+      .language-toggle button {
+        border: 0;
+        border-radius: 999px;
+        padding: 0.6rem 0.95rem;
+        color: var(--muted);
+        background: transparent;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .language-toggle button.active { background: rgba(147, 197, 253, 0.18); color: var(--text); }
+
+      .hero-panel,
+      .section-card {
+        border: 1px solid var(--border);
+        border-radius: 28px;
+        background: linear-gradient(180deg, rgba(15, 23, 42, 0.28), rgba(15, 23, 42, 0.7));
+        backdrop-filter: blur(18px);
+        box-shadow: var(--shadow);
+      }
+
+      .hero-panel {
+        position: relative;
+        overflow: hidden;
+        margin-top: 1rem;
+        padding: clamp(1.5rem, 4vw, 3rem);
+      }
+
+      .hero-panel::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(100deg, rgba(5, 8, 22, 0.96) 18%, rgba(5, 8, 22, 0.12) 52%, rgba(5, 8, 22, 0.95) 84%);
+        transform: translateX(0);
+        animation: reveal-panel 1.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      }
+
+      @keyframes reveal-panel { to { transform: translateX(110%); } }
+
+      .hero-grid { position: relative; z-index: 1; display: grid; gap: 2rem; grid-template-columns: minmax(0, 1.25fr) minmax(280px, 1fr); }
+      .eyebrow,
+      .sub-copy,
+      .micro-copy,
+      .hero-right,
+      .section-card { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+      body.show-content .eyebrow,
+      body.show-content .sub-copy,
+      body.show-content .micro-copy,
+      body.show-content .hero-right,
+      body.show-content .section-card { opacity: 1; transform: translateY(0); }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.65rem;
+        font-size: 0.85rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+      .eyebrow::before { content: ""; width: 3rem; height: 1px; background: linear-gradient(90deg, transparent, var(--accent)); }
+
+      .display-wrap { margin: 1rem 0; overflow: hidden; }
+      .display-title {
+        margin: 0;
+        font-size: clamp(4.2rem, 16vw, 11rem);
+        line-height: 0.92;
+        letter-spacing: -0.08em;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: transparent;
+        -webkit-text-stroke: 1px rgba(248, 250, 252, 0.72);
+        transform: translateY(115%);
+        animation: title-rise 0.95s cubic-bezier(0.2, 0.9, 0.2, 1) 0.35s forwards;
+      }
+      .display-title .solid { color: var(--text); -webkit-text-stroke: 0; }
+      @keyframes title-rise { to { transform: translateY(0); } }
+
+      .sub-copy { margin: 0; color: var(--muted); font-size: clamp(1rem, 2vw, 1.16rem); line-height: 1.7; max-width: 44rem; }
+      .micro-copy { margin-top: 1.2rem; color: rgba(226, 232, 240, 0.64); }
+
+      .hero-right { display: grid; gap: 0.9rem; align-content: end; }
+      .pill {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: var(--card);
+        padding: 0.9rem 1rem;
+        color: var(--muted);
+      }
+      .pill strong { color: var(--text); }
+
+      .main-content { display: grid; gap: 1rem; margin-top: 1rem; }
+      .section-card { padding: 1.2rem; }
+      .section-card h2 { margin: 0 0 0.8rem; font-size: 1.2rem; }
+      .section-card p { margin: 0; color: var(--muted); line-height: 1.65; }
+
+      .projects-grid {
+        display: grid;
+        gap: 0.9rem;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+      .project {
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: rgba(15, 23, 42, 0.48);
+        padding: 1rem;
+      }
+      .project h3 { margin: 0 0 0.35rem; font-size: 1rem; }
+      .project p { margin: 0 0 0.65rem; font-size: 0.95rem; }
+      .tags { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+      .tag {
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 0.2rem 0.55rem;
+        font-size: 0.75rem;
+        color: var(--muted);
+      }
+
+      .list { margin: 0; padding-left: 1.1rem; color: var(--muted); line-height: 1.7; }
+      .links { display: flex; flex-wrap: wrap; gap: 0.8rem 1.2rem; margin-top: 0.8rem; }
+
+      @media (max-width: 880px) {
+        .hero-grid { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 560px) {
+        .shell { width: min(100% - 1rem, 1120px); }
+        .hero-panel, .section-card { border-radius: 22px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="floating-lines" aria-hidden="true">
+        <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+          <path d="M-80 610C132 498 250 446 394 470c148 25 219 119 383 131 183 13 283-74 438-145 134-61 265-84 465 33" stroke="var(--line)" stroke-width="2.2"/>
+          <path d="M-120 390c171-77 280-107 432-70 151 37 203 140 395 155 179 15 288-56 441-127 132-61 260-82 452 18" stroke="var(--line-strong)" stroke-width="1.8"/>
+          <path d="M-70 736c167-82 319-96 477-50 150 44 235 121 407 111 173-10 242-78 381-129 116-43 244-42 425 42" stroke="rgba(125, 211, 252, 0.3)" stroke-width="1.5"/>
+        </svg>
+      </div>
+
+      <div class="shell">
+        <header class="topbar">
+          <div class="language-toggle" role="group" aria-label="Language switcher">
+            <button type="button" class="active" data-lang-button="en">EN</button>
+            <button type="button" data-lang-button="fr">FR</button>
+          </div>
+        </header>
+
+        <main>
+          <section class="hero-panel">
+            <div class="hero-grid">
+              <div>
+                <div class="eyebrow" data-i18n="eyebrow">Product, tech & leadership</div>
+                <div class="display-wrap"><h1 class="display-title"><span class="solid">PAO</span>LO</h1></div>
+                <p class="sub-copy" data-i18n="intro">Ex Co-founder CTO @ Lazy Labs Inc. CTO, Product engineer and Coach in Product development.</p>
+                <p class="micro-copy" data-i18n="heroNote">And always building something... 🦾 Maybe soon #IndieMaker 👨‍💻 · Based in Paris, France 🇫🇷</p>
+              </div>
+              <div class="hero-right">
+                <div class="pill"><strong data-i18n="nowLabel">Now:</strong> <span data-i18n="nowText">Working at Rox.com.</span></div>
+                <div class="pill"><strong data-i18n="beforeLabel">Before:</strong> <span data-i18n="beforeText">CTO for may.fr and Co-founder CTO at Lazy Labs Inc.</span></div>
+                <div class="pill"><strong data-i18n="contactLabel">Get in touch:</strong> <span>contact@paolocastro.com</span></div>
+              </div>
+            </div>
+          </section>
+
+          <div class="main-content">
+            <section class="section-card">
+              <h2 data-i18n="projectsTitle">My current projects</h2>
+              <div class="projects-grid">
+                <article class="project">
+                  <h3>Confidant</h3>
+                  <p data-i18n="confidantDesc">Confidant – Your AI That Truly Listens. Speak freely, feel heard, and never feel alone again.</p>
+                  <div class="tags"><span class="tag">React Expo</span><span class="tag">Ollama</span><span class="tag">OpenAI</span><span class="tag">Bolt.new</span></div>
+                </article>
+                <article class="project">
+                  <h3>Moon Jot</h3>
+                  <p data-i18n="moonjotDesc">A Desktop Suite to maximize job productivity.</p>
+                  <div class="tags"><span class="tag">Electron</span><span class="tag">React</span><span class="tag">Plugin system</span><span class="tag">AI</span></div>
+                </article>
+                <article class="project">
+                  <h3>Command Linear</h3>
+                  <p data-i18n="linearDesc">Create Linear issues twice as fast.</p>
+                  <div class="tags"><span class="tag">Electron</span><span class="tag">React</span><span class="tag">TypeScript</span><span class="tag">Serverless</span></div>
+                </article>
+              </div>
+            </section>
+
+            <section class="section-card">
+              <h2 data-i18n="githubTitle">Check out my GitHub</h2>
+              <p data-i18n="githubText">You can explore my latest projects and what I'm currently building by visiting my GitHub repository.</p>
+              <div class="links"><a href="https://github.com/" target="_blank" rel="noopener" data-i18n="visitGithub">Visit GitHub →</a></div>
+            </section>
+
+            <section class="section-card">
+              <h2 data-i18n="previousTitle">Previously</h2>
+              <div class="projects-grid">
+                <article class="project">
+                  <h3>Lazy Labs Inc.</h3>
+                  <p data-i18n="lazyDesc">Universal inbox for capturing, contextualizing and structuring ideas, notes and tasks.</p>
+                  <div class="tags"><span class="tag">React/TS</span><span class="tag">Electron</span><span class="tag">AI</span><span class="tag">Node</span></div>
+                </article>
+                <article class="project">
+                  <h3>LangChainJS</h3>
+                  <p data-i18n="langchainDesc">I contribute to LangChainJS, a language processing library integrating with OpenAI assistants.</p>
+                  <div class="tags"><span class="tag">JavaScript</span><span class="tag">OpenAI</span><span class="tag">NLP</span><span class="tag">Language Processing</span></div>
+                </article>
+              </div>
+            </section>
+
+            <section class="section-card">
+              <h2 data-i18n="helpTitle">How I help startups 🚀</h2>
+              <ul class="list">
+                <li data-i18n="help1">Turn a strong idea into a viable product.</li>
+                <li data-i18n="help2">Scale product strategy with practical execution.</li>
+                <li data-i18n="help3">Build a strong technical product foundation.</li>
+                <li data-i18n="help4">Optimize product development and efficiency.</li>
+                <li data-i18n="help5">Navigate the competitive startup landscape.</li>
+              </ul>
+            </section>
+
+            <section class="section-card">
+              <h2 data-i18n="journeyTitle">My journey</h2>
+              <p data-i18n="journeyText">UPMC - Engineer · New Zealand · Marine Nationale ATC · Better Collectif · Bird Office - Lead · Bonjour.io - Lead · Skya - Founder · Lazy - Co-founder CTO · May.fr - CTO and CPO</p>
+            </section>
+
+            <section class="section-card">
+              <h2 data-i18n="aboutTitle">About me</h2>
+              <p data-i18n="aboutText">With an engineering diploma, I travelled around the world (especially NZ), joined the French Navy as a traffic controller, then switched to development to build impactful products and companies. After a 4-year journey as Co-founder at Lazy Labs Inc., I'm looking for the next adventure while continuing to build great things.</p>
+            </section>
+
+            <section class="section-card">
+              <h2 data-i18n="contactTitle">Get in touch ✉️</h2>
+              <p data-i18n="contactText">Need coaching about SaaS, website/product tech consultation, or just want to say hi? Feel free to reach out by email.</p>
+              <div class="links">
+                <a href="mailto:contact@paolocastro.com">contact@paolocastro.com</a>
+                <a href="https://x.com/Pao_Cto" target="_blank" rel="noopener">@Pao_Cto</a>
+                <a href="https://github.com/" target="_blank" rel="noopener">GitHub</a>
+                <a href="https://linkedin.com" target="_blank" rel="noopener">LinkedIn</a>
+                <a href="https://medium.com" target="_blank" rel="noopener">Medium</a>
+              </div>
+            </section>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script>
+      const translations = {
+        en: {
+          eyebrow: "Product, tech & leadership",
+          intro: "Ex Co-founder CTO @ Lazy Labs Inc. CTO, Product engineer and Coach in Product development.",
+          heroNote: "And always building something... 🦾 Maybe soon #IndieMaker 👨‍💻 · Based in Paris, France 🇫🇷",
+          nowLabel: "Now:",
+          nowText: "Working at Rox.com.",
+          beforeLabel: "Before:",
+          beforeText: "CTO for may.fr and Co-founder CTO at Lazy Labs Inc.",
+          contactLabel: "Get in touch:",
+          projectsTitle: "My current projects",
+          confidantDesc: "Confidant – Your AI That Truly Listens. Speak freely, feel heard, and never feel alone again.",
+          moonjotDesc: "A Desktop Suite to maximize job productivity.",
+          linearDesc: "Create Linear issues twice as fast.",
+          githubTitle: "Check out my GitHub",
+          githubText: "You can explore my latest projects and what I'm currently building by visiting my GitHub repository.",
+          visitGithub: "Visit GitHub →",
+          previousTitle: "Previously",
+          lazyDesc: "Universal inbox for capturing, contextualizing and structuring ideas, notes and tasks.",
+          langchainDesc: "I contribute to LangChainJS, a language processing library integrating with OpenAI assistants.",
+          helpTitle: "How I help startups 🚀",
+          help1: "Turn a strong idea into a viable product.",
+          help2: "Scale product strategy with practical execution.",
+          help3: "Build a strong technical product foundation.",
+          help4: "Optimize product development and efficiency.",
+          help5: "Navigate the competitive startup landscape.",
+          journeyTitle: "My journey",
+          journeyText: "UPMC - Engineer · New Zealand · Marine Nationale ATC · Better Collectif · Bird Office - Lead · Bonjour.io - Lead · Skya - Founder · Lazy - Co-founder CTO · May.fr - CTO and CPO",
+          aboutTitle: "About me",
+          aboutText: "With an engineering diploma, I travelled around the world (especially NZ), joined the French Navy as a traffic controller, then switched to development to build impactful products and companies. After a 4-year journey as Co-founder at Lazy Labs Inc., I'm looking for the next adventure while continuing to build great things.",
+          contactTitle: "Get in touch ✉️",
+          contactText: "Need coaching about SaaS, website/product tech consultation, or just want to say hi? Feel free to reach out by email."
+        },
+        fr: {
+          eyebrow: "Produit, tech & leadership",
+          intro: "Ex co-fondateur CTO @ Lazy Labs Inc. CTO, product engineer et coach en développement produit.",
+          heroNote: "Toujours en train de construire quelque chose... 🦾 Peut-être bientôt #IndieMaker 👨‍💻 · Basé à Paris, France 🇫🇷",
+          nowLabel: "Maintenant :",
+          nowText: "Je travaille chez Rox.com.",
+          beforeLabel: "Avant :",
+          beforeText: "CTO chez may.fr et co-fondateur CTO chez Lazy Labs Inc.",
+          contactLabel: "Contact :",
+          projectsTitle: "Mes projets actuels",
+          confidantDesc: "Confidant – votre IA qui écoute vraiment. Parlez librement, sentez-vous écouté et ne vous sentez plus seul.",
+          moonjotDesc: "Une suite desktop pour maximiser la productivité au travail.",
+          linearDesc: "Créer des issues Linear deux fois plus vite.",
+          githubTitle: "Voir mon GitHub",
+          githubText: "Vous pouvez découvrir mes derniers projets et ce que je construis actuellement sur mon dépôt GitHub.",
+          visitGithub: "Visiter GitHub →",
+          previousTitle: "Avant",
+          lazyDesc: "Inbox universelle pour capturer, contextualiser et structurer idées, notes et tâches.",
+          langchainDesc: "Je contribue à LangChainJS, une librairie de traitement du langage intégrée aux assistants OpenAI.",
+          helpTitle: "Comment j'aide les startups 🚀",
+          help1: "Transformer une idée forte en produit viable.",
+          help2: "Accélérer la stratégie produit avec une exécution concrète.",
+          help3: "Construire une base technique solide pour le produit.",
+          help4: "Optimiser le développement produit et l'efficacité.",
+          help5: "Naviguer dans un paysage startup compétitif.",
+          journeyTitle: "Mon parcours",
+          journeyText: "UPMC - Ingénieur · Nouvelle-Zélande · Marine Nationale ATC · Better Collectif · Bird Office - Lead · Bonjour.io - Lead · Skya - Founder · Lazy - Co-founder CTO · May.fr - CTO et CPO",
+          aboutTitle: "À propos",
+          aboutText: "Diplômé d'ingénierie, j'ai voyagé dans le monde (surtout en NZ), rejoint la Marine Nationale comme contrôleur aérien, puis je suis passé au développement pour créer des produits et entreprises à impact. Après 4 ans comme co-fondateur de Lazy Labs Inc., je cherche la prochaine aventure tout en continuant à construire de belles choses.",
+          contactTitle: "Contact ✉️",
+          contactText: "Besoin de coaching SaaS, d'accompagnement website/produit tech, ou simplement dire bonjour ? Écris-moi par email."
+        }
+      };
+
+      const buttons = document.querySelectorAll("[data-lang-button]");
+      const nodes = document.querySelectorAll("[data-i18n]");
+
+      function setLanguage(lang) {
+        const content = translations[lang];
+        document.documentElement.lang = lang;
+        nodes.forEach((node) => {
+          const key = node.dataset.i18n;
+          if (content[key]) node.textContent = content[key];
+        });
+        buttons.forEach((button) => {
+          const active = button.dataset.langButton === lang;
+          button.classList.toggle("active", active);
+          button.setAttribute("aria-pressed", String(active));
+        });
+      }
+
+      buttons.forEach((button) => button.addEventListener("click", () => setLanguage(button.dataset.langButton)));
+
+      setLanguage("en");
+      window.setTimeout(() => document.body.classList.add("show-content"), 1050);
+    </script>
+  </body>
+</html>
